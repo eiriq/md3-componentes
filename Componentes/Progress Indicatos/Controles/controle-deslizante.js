@@ -5,7 +5,6 @@ class ControleDeslizante extends HTMLElement {
 
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
     this.polegarAtivo = null;
     this.polegaresAlterados = new Set();
   }
@@ -23,7 +22,7 @@ class ControleDeslizante extends HTMLElement {
   }
 
   attributeChangedCallback(nome, antigo, novo) {
-    if (!this.shadowRoot) return;
+    if (!this.querySelector('.base')) return;
     const estruturais = ['discreto', 'rotulado', 'tamanho', 'desativado', 'intervalo'];
     if (estruturais.includes(nome)) {
       this._render();
@@ -43,12 +42,11 @@ class ControleDeslizante extends HTMLElement {
   get estaDesativado() { return this.hasAttribute('desativado'); }
 
   _render() {
-    const tamanho = this.getAttribute('tamanho') || 'extra-small';
     const valor = this.getAttribute('valor') ?? 50;
     const valorInferior = this.getAttribute('valor-inferior') ?? 20;
     const valorSuperior = this.getAttribute('valor-superior') ?? 80;
 
-    this.shadowRoot.innerHTML = `
+    this.innerHTML = `
       <style>
         :host {
           display: inline-block;
@@ -294,14 +292,14 @@ class ControleDeslizante extends HTMLElement {
   }
 
   _setupListeners() {
-    const base = this.shadowRoot.querySelector('.base');
+    const base = this.querySelector('.base');
     if (!base) return;
 
     base.addEventListener('pointerdown', e => this._handlePointerDown(e));
     base.addEventListener('pointermove', e => this._handlePointerMove(e));
     base.addEventListener('pointerup', e => this._handlePointerUp(e));
 
-    this.shadowRoot.querySelectorAll('.polegar').forEach(polegar => {
+    this.querySelectorAll('.polegar').forEach(polegar => {
       polegar.addEventListener('keydown', e => this._handleKeyDown(e, polegar));
       polegar.addEventListener('keyup', e => this._handleKeyUp(e, polegar));
       polegar.addEventListener('pointerdown', () => polegar.classList.add('ativo'));
@@ -318,7 +316,7 @@ class ControleDeslizante extends HTMLElement {
 
   pontoDoValor(valor) {
     const larguraSlider = this.clientWidth;
-    const larguraPolegar = this.shadowRoot.querySelector('.polegar')?.clientWidth ?? 0;
+    const larguraPolegar = this.querySelector('.polegar')?.clientWidth ?? 0;
     return (larguraSlider - larguraPolegar) * ((valor - this.min) / (this.max - this.min));
   }
 
@@ -334,7 +332,7 @@ class ControleDeslizante extends HTMLElement {
   }
 
   atualizarMarcas(fnAtiva) {
-    const marcasEl = this.shadowRoot.querySelector('.marcas');
+    const marcasEl = this.querySelector('.marcas');
     if (!marcasEl) return;
     marcasEl.innerHTML = '';
     if (!this.eDiscreto) return;
@@ -357,8 +355,8 @@ class ControleDeslizante extends HTMLElement {
   }
 
   atualizarDimensoes() {
-    const base = this.shadowRoot.querySelector('.base');
-    const polegares = [...this.shadowRoot.querySelectorAll('.polegar')];
+    const base = this.querySelector('.base');
+    const polegares = [...this.querySelectorAll('.polegar')];
     if (!base || polegares.length === 0) return;
 
     const larguraSlider = this.clientWidth;
@@ -429,7 +427,7 @@ class ControleDeslizante extends HTMLElement {
     this.polegaresAlterados.clear();
 
     const polegarClicado = e.composedPath()?.find(x => x.classList?.contains('polegar')) ?? e.target.closest('.polegar');
-    const polegares = [...this.shadowRoot.querySelectorAll('.polegar')];
+    const polegares = [...this.querySelectorAll('.polegar')];
     
     if (polegarClicado && polegares.includes(polegarClicado)) {
       this.polegarAtivo = polegarClicado;
@@ -453,7 +451,7 @@ class ControleDeslizante extends HTMLElement {
     if (!(e.target instanceof HTMLElement) || !e.target.hasPointerCapture?.(e.pointerId) || !this.polegarAtivo || this.polegarAtivo.getAttribute('aria-disabled') === 'true') return;
     const valor = this.valorDoPonto(e.clientX);
     let lo = this.min, hi = this.max;
-    const polegares = [...this.shadowRoot.querySelectorAll('.polegar')];
+    const polegares = [...this.querySelectorAll('.polegar')];
     if (this.eIntervalo) {
       if (this.polegarAtivo === polegares[1]) lo = Math.max(lo, this.obterValor(polegares[0]));
       else if (polegares[1]) hi = Math.min(hi, this.obterValor(polegares[1]));
@@ -478,7 +476,7 @@ class ControleDeslizante extends HTMLElement {
     if (polegar.getAttribute('aria-disabled') === 'true') return;
     const valor = this.obterValor(polegar);
     let lo = this.min, hi = this.max;
-    const polegares = [...this.shadowRoot.querySelectorAll('.polegar')];
+    const polegares = [...this.querySelectorAll('.polegar')];
     if (this.eIntervalo) {
       if (polegar === polegares[1]) lo = Math.max(lo, this.obterValor(polegares[0]));
       else if (polegares[1]) hi = Math.min(hi, this.obterValor(polegares[1]));
